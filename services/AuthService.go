@@ -14,25 +14,25 @@ import (
 type AuthService interface {
 
     // 관리자 id를 통해 새로운 Access Token, Refresh Token 쌍을 발급하고, db에 저장한다.
-    CreateTokenPair(string)             (*models.AdminAuth, error)
+    CreateTokenPair(string)             (auth *models.AdminAuth, err error)
 
     // 이미 존재 하는 토큰 쌍의 uuid와 관리자 id 정보를 가지고 Access Token을 새롭게 발급한다.
     // 재발급된 Access Token은 db상에서 업데이트된다.
-    CreateAccessToken(string, string)   (string, error)
+    CreateAccessToken(uuid, id string)   (at string, err error)
 
     // Refresh Token에서 추출한 uuid로 db상의 토큰 쌍을 검색하여
     // 주어진 토큰 쌍과 일치하는지 검증한다.
     // 검증에 실패할 경우 error를 반환한다.
-    VerifyTokenPair(at, rt string)      (string, error)
+    VerifyTokenPair(at, rt string)      (uuid string, err error)
 
     // Access Token의 유효성을 검증하고, claim과 error를 반환한다.
-    VerifyAccessToken(string)           (jwt.MapClaims, error)
+    VerifyAccessToken(string)           (claims jwt.MapClaims, err error)
 
     // Refresh Token의 유효성을 검증하고, claim과 error를 반환한다.
-    VerifyRefreshToken(string)          (jwt.MapClaims, error)
+    VerifyRefreshToken(string)          (claims jwt.MapClaims, err error)
 
     // Access Token, Refresh Token 쌍을 db에서 삭제한다.
-    DeleteTokenPair(uuid string)        (error)
+    DeleteTokenPair(uuid string)        (err error)
 }
 
 type AuthServiceImpl struct {
@@ -45,8 +45,6 @@ func NewAuthServiceImpl(authRepo repositories.AuthRepository) AuthService {
 
 func (s *AuthServiceImpl) CreateTokenPair(id string) (*models.AdminAuth, error) {
     var err error
-
-    println("test")
 
     adminAuth := &models.AdminAuth{
         UUID: uuid.NewString(),
@@ -111,7 +109,7 @@ func (s *AuthServiceImpl) VerifyTokenPair(at, rt string) (string, error) {
     }
 
     if adminAuth.AccessToken == at && adminAuth.RefreshToken == rt {
-        return "", nil
+        return uuid, nil
     } else {
         return "", errors.New("Invalid Token Pair.")
     }
