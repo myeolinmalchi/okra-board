@@ -8,17 +8,17 @@ import (
 
 type AuthRepository interface {
 
-    // Insert AdminAuth
-    InsertAdminAuth(adminAuth *models.AdminAuth) error 
+    // Select AdminAuth and returns with error
+    GetAdminAuth(uuid string)                       (auth *models.AdminAuth, err error)
 
-    // Select AdminAuth
-    GetAdminAuth(uuid string) (*models.AdminAuth, error)
+    // Insert AdminAuth and returns error
+    InsertAdminAuth(adminAuth *models.AdminAuth)    (err error)
 
-    // Delete AdminAuth
-    DeleteAdminAuth(uuid string) error
+    // Delete AdminAuth and returns error
+    DeleteAdminAuth(uuid string)                    (err error)
 
-    // Update AdminAuth(Only Access Token)
-    UpdateAccessToken(uuid, at string) error
+    // Update AdminAuth(Only Access Token) and returns error
+    UpdateAccessToken(uuid, at string)              (err error)
 
 }
 
@@ -51,5 +51,4 @@ func (rep *AuthRepositoryImpl) UpdateAccessToken(uuid, at string) (err error) {
         Where("uuid = ?", uuid).
         Update("access_token", at).
         Error
-    return
-}
+    return }

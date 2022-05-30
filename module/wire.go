@@ -7,7 +7,6 @@ import (
 	"okra_board2/repositories"
 	"okra_board2/services"
 	"okra_board2/controllers"
-    "okra_board2/middlewares"
 	"gorm.io/gorm"
 	"github.com/google/wire"
 )
@@ -16,34 +15,28 @@ import (
 func InitAdminController(db *gorm.DB) (c controllers.AdminController) {
     wire.Build(
         repositories.NewAdminRepositoryImpl,
-        repositories.NewAuthRepositoryImpl,
         services.NewAdminServiceImpl,
-        services.NewAuthServiceImpl,
         controllers.NewAdminControllerImpl, 
     )
     return
 }
 
-func InitAdminController2(db *gorm.DB) (c controllers.AdminController) {
+func InitAuthController(db *gorm.DB) (a controllers.AuthController) {
     wire.Build(
-        wire.Bind(
-            repositories.NewAdminRepositoryImpl,
-            services.NewAdminServiceImpl,
-        ),
-        wire.Bind(
-            repositories.NewAuthRepositoryImpl,
-            services.NewAuthServiceImpl,
-        ),
-        controllers.NewAdminControllerImpl,
+        repositories.NewAuthRepositoryImpl,
+        repositories.NewAdminRepositoryImpl,
+        services.NewAdminServiceImpl,
+        services.NewAuthServiceImpl,
+        controllers.NewAuthControllerImpl,
     )
     return
 }
 
-func InitAuthMiddleware(db *gorm.DB) (m middlewares.AuthMiddleware) {
-    wire.Build(
-        repositories.NewAuthRepositoryImpl,
-        services.NewAuthServiceImpl,
-        middlewares.NewAuthMiddlewareImpl,
+func InitPostController(db *gorm.DB) (c controllers.PostController) {
+    wire.Build( 
+        repositories.NewPostRepositoryImpl,
+        services.NewPostServiceImpl,
+        controllers.NewPostControllerImpl,
     )
     return
 }

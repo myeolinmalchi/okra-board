@@ -1,0 +1,6 @@
+# Directories #
+/log
+/public
+
+# Config Files #
+config.json

@@ -9,7 +9,6 @@ package module
 import (
 	"gorm.io/gorm"
 	"okra_board2/controllers"
-	"okra_board2/middlewares"
 	"okra_board2/repositories"
 	"okra_board2/services"
 )
@@ -19,15 +18,22 @@ import (
 func InitAdminController(db *gorm.DB) controllers.AdminController {
 	adminRepository := repositories.NewAdminRepositoryImpl(db)
 	adminService := services.NewAdminServiceImpl(adminRepository)
-	authRepository := repositories.NewAuthRepositoryImpl(db)
-	authService := services.NewAuthServiceImpl(authRepository)
-	adminController := controllers.NewAdminControllerImpl(adminService, authService)
+	adminController := controllers.NewAdminControllerImpl(adminService)
 	return adminController
 }
 
-func InitAuthMiddleware(db *gorm.DB) middlewares.AuthMiddleware {
+func InitAuthController(db *gorm.DB) controllers.AuthController {
 	authRepository := repositories.NewAuthRepositoryImpl(db)
 	authService := services.NewAuthServiceImpl(authRepository)
-	authMiddleware := middlewares.NewAuthMiddlewareImpl(authService)
-	return authMiddleware
+	adminRepository := repositories.NewAdminRepositoryImpl(db)
+	adminService := services.NewAdminServiceImpl(adminRepository)
+	authController := controllers.NewAuthControllerImpl(authService, adminService)
+	return authController
+}
+
+func InitPostController(db *gorm.DB) controllers.PostController {
+	postRepository := repositories.NewPostRepositoryImpl(db)
+	postService := services.NewPostServiceImpl(postRepository)
+	postController := controllers.NewPostControllerImpl(postService)
+	return postController
 }

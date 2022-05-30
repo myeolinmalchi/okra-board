@@ -15,16 +15,16 @@ import (
 var DB *gorm.DB
 var Logger *log.Logger
 
-func NewDBConnection() *gorm.DB{
-    dsn := "root:382274@tcp(localhost:3306)/board_prototype?parseTime=true"
-    db, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{
+func InitDBConnection() (*gorm.DB, error){
+    dsn := "root:382274@tcp(localhost:3306)/board?parseTime=true"
+    db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
         Logger: logger.Default.LogMode(logger.Info),
         NowFunc: func() time.Time {
             ti, _ := time.LoadLocation("Asia/Seoul")
             return time.Now().In(ti)
         },
     })
-    return db
+    return db, err
 }
 
 func InitLogger() (*os.File, error) {
@@ -39,8 +39,10 @@ func InitLogger() (*os.File, error) {
 }
 
 type Config struct {
-    WhiteList   []string    `json:"whitelist"`
-    SecretKey   string      `json:"secretkey"`
+    WhiteList       []string    `json:"whitelist"`
+    AccessSecret    string      `json:"access_secret"`
+    RefreshSecret   string      `json:"refresh_secret"`
+    Domain          string      `json:"domain"`
 }
 
 func LoadConfig() (*Config, error){
@@ -50,10 +52,4 @@ func LoadConfig() (*Config, error){
     jsonParser := json.NewDecoder(file)
     jsonParser.Decode(config)
     return config, err
-}
-
-func InitLoggingFile() (*os.File, error) {
-    startTime := time.Now().Format("2006-01-02")
-    logFile := "log/log-" + startTime
-    return os.Create(strings.TrimSpace(logFile))
 }
