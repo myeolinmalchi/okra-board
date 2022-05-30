@@ -38,17 +38,20 @@ func (a *AuthControllerImpl) Auth(c *gin.Context) {
             "status": 401,
             "message": "access token is empty.",
         })
+        c.Abort()
     } else if _, err := a.authService.VerifyAccessToken(token); err != nil {
         if v, _ := err.(*jwt.ValidationError); v.Errors == jwt.ValidationErrorExpired {
             c.JSON(401, gin.H {
                 "status": 401,
                 "message": "access token is expired.",
             })
+            c.Abort()
         } else {
             c.JSON(401, gin.H {
                 "status": 401,
                 "message": "invalid access token.",
             })
+            c.Abort()
         }
     }
 }
