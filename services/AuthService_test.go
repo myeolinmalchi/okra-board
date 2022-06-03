@@ -14,8 +14,8 @@ func TestAuthService(t *testing.T) {
     if err != nil { assert.Error(t, err) }
     authRepo := repositories.NewAuthRepositoryImpl(db)
     adminRepo := repositories.NewAdminRepositoryImpl(db)
-    authService := services.NewAuthServiceImpl(authRepo)
     adminService := services.NewAdminServiceImpl(adminRepo)
+    authService := services.NewAuthServiceImpl(authRepo, adminService)
 
     admin := models.Admin {
         ID: "administrator11",

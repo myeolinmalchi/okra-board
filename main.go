@@ -78,6 +78,7 @@ func main() {
         v1.PUT("/admin/:id", authController.Auth, adminController.Update)
         v1.DELETE("/admin/:id", authController.Auth, adminController.Delete)
         v1.POST("/admin/login", authController.Login)
+        v1.POST("/admin/logout", authController.Logout)
         v1.POST("/admin/auth", authController.ReissueAccessToken)
 
         v1.POST("/image/upload", imageController.UploadImage) 

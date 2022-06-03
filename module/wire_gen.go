@@ -24,9 +24,9 @@ func InitAdminController(db *gorm.DB) controllers.AdminController {
 
 func InitAuthController(db *gorm.DB) controllers.AuthController {
 	authRepository := repositories.NewAuthRepositoryImpl(db)
-	authService := services.NewAuthServiceImpl(authRepository)
 	adminRepository := repositories.NewAdminRepositoryImpl(db)
 	adminService := services.NewAdminServiceImpl(adminRepository)
+	authService := services.NewAuthServiceImpl(authRepository, adminService)
 	authController := controllers.NewAuthControllerImpl(authService, adminService)
 	return authController
 }

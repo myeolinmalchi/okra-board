@@ -37,10 +37,17 @@ type AuthService interface {
 
 type AuthServiceImpl struct {
     authRepo repositories.AuthRepository
+    adminService AdminService
 }
 
-func NewAuthServiceImpl(authRepo repositories.AuthRepository) AuthService {
-    return &AuthServiceImpl{ authRepo: authRepo }
+func NewAuthServiceImpl(
+    authRepo repositories.AuthRepository,
+    adminService AdminService,
+) AuthService {
+    return &AuthServiceImpl{ 
+        authRepo: authRepo,
+        adminService: adminService,
+    }
 }
 
 func (s *AuthServiceImpl) CreateTokenPair(id string) (*models.AdminAuth, error) {
@@ -51,11 +58,16 @@ func (s *AuthServiceImpl) CreateTokenPair(id string) (*models.AdminAuth, error) 
         AdminID: id,
     }
 
+    admin, err := s.adminService.GetAdmin(id)
+    if err != nil { return nil, err }
+
     atClaims := jwt.MapClaims{}
     atClaims["authorized"] = true
     atClaims["uuid"] = adminAuth.UUID
     atClaims["id"] = id
+    atClaims["name"] = admin.Name
     atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+    
     at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
     adminAuth.AccessToken, err = at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
     if err != nil {
@@ -65,6 +77,7 @@ func (s *AuthServiceImpl) CreateTokenPair(id string) (*models.AdminAuth, error) 
     rtClaims := jwt.MapClaims{}
     rtClaims["uuid"] = adminAuth.UUID
     rtClaims["id"] = id
+    rtClaims["name"] = admin.Name
     rtClaims["exp"] = time.Now().Add(time.Hour * 24 * 3).Unix()
     rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
     adminAuth.RefreshToken, err = rt.SignedString([]byte(os.Getenv("REFRESH_SECRET")))
@@ -80,9 +93,14 @@ func (s *AuthServiceImpl) CreateTokenPair(id string) (*models.AdminAuth, error) 
 
 func (s *AuthServiceImpl) CreateAccessToken(uuid, id string) (string, error) {
     atClaims := jwt.MapClaims{}
-    atClaims["isAdmin"] = true
+
+    admin, err := s.adminService.GetAdmin(id)
+    if err != nil { return "", err }
+
+    atClaims["authorized"] = true
     atClaims["uuid"] = uuid
     atClaims["id"] = id
+    atClaims["name"] = admin.Name
     atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
     at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
     token, err := at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
@@ -101,7 +119,6 @@ func (s *AuthServiceImpl) VerifyTokenPair(at, rt string) (string, error) {
         return "", err
     }
     uuid := rtClaims["uuid"].(string)
-
     adminAuth := &models.AdminAuth{}
     adminAuth, err = s.authRepo.GetAdminAuth(uuid)
     if err != nil {

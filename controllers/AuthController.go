@@ -11,6 +11,7 @@ import (
 type AuthController interface {
     Auth(c *gin.Context)
     Login(c *gin.Context)
+    Logout(c *gin.Context)
     ReissueAccessToken(c *gin.Context)
 }
 
@@ -38,17 +39,20 @@ func (a *AuthControllerImpl) Auth(c *gin.Context) {
             "status": 401,
             "message": "access token is empty.",
         })
+        c.Abort()
     } else if _, err := a.authService.VerifyAccessToken(token); err != nil {
         if v, _ := err.(*jwt.ValidationError); v.Errors == jwt.ValidationErrorExpired {
             c.JSON(401, gin.H {
                 "status": 401,
                 "message": "access token is expired.",
             })
+            c.Abort()
         } else {
             c.JSON(401, gin.H {
                 "status": 401,
                 "message": "invalid access token.",
             })
+            c.Abort()
         }
     }
 }
@@ -73,6 +77,43 @@ func (a *AuthControllerImpl) Login(c *gin.Context) {
     } else {
         c.Status(401)
     }
+}
+
+func (a *AuthControllerImpl) Logout(c *gin.Context) {
+    authorization := c.Request.Header.Get("Authorization")
+    tokenPair := strings.Split(authorization, " ")
+
+    var accessToken, refreshToken string
+    accessToken = tokenPair[0]
+    if len(tokenPair) >= 2 {
+        refreshToken = tokenPair[1]
+    } else {
+        c.JSON(401, gin.H {
+            "status": 401,
+            "message": "refresh token is empty",
+        })
+        return
+    }
+
+    uuid, err := a.authService.VerifyTokenPair(accessToken, refreshToken)
+    if err != nil {
+        c.JSON(401, gin.H {
+            "status": 401,
+            "message": err.Error(),
+        })
+        return
+    }
+
+    err = a.authService.DeleteTokenPair(uuid)
+    if err != nil {
+        c.JSON(401, gin.H {
+            "status": 401,
+            "message": err.Error(),
+        })
+        return
+    }
+
+    c.Status(200)
 }
 
 func (a *AuthControllerImpl) ReissueAccessToken(c *gin.Context) {
