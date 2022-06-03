@@ -66,7 +66,7 @@ func (s *AuthServiceImpl) CreateTokenPair(id string) (*models.AdminAuth, error) 
     atClaims["uuid"] = adminAuth.UUID
     atClaims["id"] = id
     atClaims["name"] = admin.Name
-    atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+    atClaims["exp"] = time.Now().Add(time.Second * 15).Unix()
     
     at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
     adminAuth.AccessToken, err = at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
@@ -101,7 +101,7 @@ func (s *AuthServiceImpl) CreateAccessToken(uuid, id string) (string, error) {
     atClaims["uuid"] = uuid
     atClaims["id"] = id
     atClaims["name"] = admin.Name
-    atClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
+    atClaims["exp"] = time.Now().Add(time.Second * 15).Unix()
     at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
     token, err := at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
     if err != nil {
