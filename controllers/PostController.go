@@ -88,10 +88,12 @@ func (p *PostControllerImpl) WritePost(c *gin.Context) {
 
     if err := c.ShouldBind(requestBody); err != nil {
         c.JSON(400, err.Error())
-    } else if err := p.postService.WritePost(requestBody); err != nil {
+    } else if postId, err := p.postService.WritePost(requestBody); err != nil {
         c.JSON(400, err.Error())
     } else {
-        c.Status(200)
+        c.JSON(200, gin.H{
+            "postId": postId,
+        })
     }
     
 }

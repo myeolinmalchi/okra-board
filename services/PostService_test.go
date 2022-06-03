@@ -31,7 +31,7 @@ func TestPostService(t *testing.T) {
 
     // insert
     for i := 0; i < len(posts); i++ {
-        if err := s.WritePost(&posts[i]); err != nil {
+        if _, err := s.WritePost(&posts[i]); err != nil {
             assert.Error(t, err)
         }
     }

@@ -9,8 +9,8 @@ import (
 
 type PostService interface {
 
-    // 게시물을 작성하고 에러를 반환한다.
-    WritePost(post *models.Post)    (err error)
+    // 게시물을 작성하고 postId와 에러를 반환한다.
+    WritePost(post *models.Post)    (postId int, err error)
 
     // 게시물을 업데이트하고 에러를 반환한다.
     UpdatePost(post *models.Post)   (err error)
@@ -58,7 +58,7 @@ func NewPostServiceImpl(
     }
 }
 
-func (r *PostServiceImpl) WritePost(post *models.Post) (err error) {
+func (r *PostServiceImpl) WritePost(post *models.Post) (postId int, err error) {
     return r.postRepo.InsertPost(post)
 }
 

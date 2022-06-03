@@ -15,7 +15,7 @@ type PostRepository interface {
     GetEnabledPost(postId int)      (post *models.Post, err error)
 
     // Insert Post and returns error
-    InsertPost(post *models.Post)   (err error)
+    InsertPost(post *models.Post)   (postId int, err error)
 
     // Update Post and returns error
     UpdatePost(post *models.Post)   (err error)
@@ -66,8 +66,10 @@ func (r *PostRepositoryImpl) GetEnabledPost(postId int) (post *models.Post, err 
     return
 }
 
-func (r *PostRepositoryImpl) InsertPost(post *models.Post) (err error) {
-    return r.db.Create(post).Error
+func (r *PostRepositoryImpl) InsertPost(post *models.Post) (postId int, err error) {
+    err = r.db.Create(post).Error
+    postId = post.PostID
+    return
 }
 
 func (r *PostRepositoryImpl) UpdatePost(post *models.Post) (err error) {
