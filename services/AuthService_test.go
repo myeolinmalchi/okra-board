@@ -1,12 +1,14 @@
 package services_test
 
 import (
-    "testing"
-    "okra_board2/models"
-    "okra_board2/repositories"
-    "okra_board2/services"
-    "okra_board2/config"
-    "github.com/stretchr/testify/assert"
+	"okra_board2/config"
+	"okra_board2/models"
+	"okra_board2/repositories"
+	"okra_board2/services"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAuthService(t *testing.T) {
@@ -35,19 +37,27 @@ func TestAuthService(t *testing.T) {
 
     uuid, err := authService.VerifyTokenPair(auth.AccessToken, auth.RefreshToken)
     assert.Equal(t, "administrator11", atClaims["id"].(string))
+    assert.Equal(t, "강민석", atClaims["name"].(string))
     assert.Equal(t, "administrator11", rtClaims["id"].(string))
+    assert.Equal(t, "강민석", rtClaims["name"].(string))
     assert.Equal(t, uuid, auth.UUID)
+
+    time.Sleep(time.Second * 1)
 
     at, err := authService.CreateAccessToken(auth.UUID, auth.AdminID)
     atClaims, err = authService.VerifyAccessToken(at)
     assert.Equal(t, err, nil)
     assert.Equal(t, "administrator11", atClaims["id"].(string))
+    assert.Equal(t, "강민석", atClaims["name"].(string))
     assert.Equal(t, auth.UUID, atClaims["uuid"].(string))
+
+    assert.NotEqual(t, at, auth.AccessToken)
 
     _, err = authService.VerifyTokenPair(at, auth.RefreshToken)
     assert.Equal(t, err, nil)
     _, err = authService.VerifyTokenPair(auth.AccessToken, auth.RefreshToken)
     assert.EqualError(t, err, "Invalid Token Pair.")
+    
 
     adminService.DeleteAdmin(admin.ID)
 
