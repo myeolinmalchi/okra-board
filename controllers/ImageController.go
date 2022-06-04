@@ -22,13 +22,13 @@ func NewImageControllerImpl() ImageController {
 func (i *ImageControllerImpl) UploadImage(c *gin.Context) {
     file, err := c.FormFile("file")
     if err != nil {
-        log.Fatal(err)
+        log.Println(err)
         c.Status(400)
     }
 
     filename := uuid.NewString()
     if err := c.SaveUploadedFile(file, "./public/images/"+filename+".png"); err != nil {
-        log.Fatal(err)
+        log.Println(err)
         c.Status(400)
     }
 
