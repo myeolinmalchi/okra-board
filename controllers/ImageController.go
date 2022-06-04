@@ -43,7 +43,7 @@ func (i *ImageControllerImpl) UploadImage(c *gin.Context) {
 
 func (i *ImageControllerImpl) DeleteImage(c *gin.Context) {
     requestBody := []string{}
-    if err := c.ShouldBind(requestBody); err != nil {
+    if err := c.ShouldBind(&requestBody); err != nil {
         c.JSON(400, err.Error())
         return
     }
