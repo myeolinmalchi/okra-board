@@ -37,7 +37,7 @@ func (i *ImageControllerImpl) UploadImage(c *gin.Context) {
 
     c.JSON(200, gin.H { 
         "url": url,
-        "file": filename,
+        "file": filename+".png",
     })
 }
 
