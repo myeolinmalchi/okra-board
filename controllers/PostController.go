@@ -55,7 +55,7 @@ func (p *PostControllerImpl) GetPosts(enabled bool) gin.HandlerFunc {
             keyword = nil
         }
 
-        posts, count := p.postService.GetPosts(enabled, size, page, boardId, keyword)
+        posts, count := p.postService.GetPosts(enabled, page, size, boardId, keyword)
         c.IndentedJSON(200, gin.H {
             "nowPage": page,
             "pageCount": int(count / size) + 1,
