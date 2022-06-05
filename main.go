@@ -66,7 +66,7 @@ func main() {
         v1.GET("/thumbnails", postController.GetSelectedThumbnails)
 
         v1.GET("/posts", authController.Auth, postController.GetPosts(false))
-        v1.GET("/posts/:postId", authController.Auth, postController.GetPosts(false))
+        v1.GET("/posts/:postId", authController.Auth, postController.GetPost(false))
 
         v1.POST("/posts", authController.Auth, postController.WritePost)
         v1.PUT("/posts/:postId", authController.Auth, postController.UpdatePost)
