@@ -9,11 +9,13 @@ import (
 
 type PostService interface {
 
-    // 게시물을 작성하고 postId와 에러를 반환한다.
-    WritePost(post *models.Post)    (postId int, err error)
+    // 게시물을 작성하고 postId와 유효성 검사 결과 및 에러를 반환한다.
+    // post.Thumbnail이 비어있을 경우 "default_thumbnail.png"로 설정한다.
+    WritePost(post *models.Post)    (postId int, result *models.PostValidationResult, err error)
 
-    // 게시물을 업데이트하고 에러를 반환한다.
-    UpdatePost(post *models.Post)   (err error)
+    // 게시물을 업데이트하고 유효성 검사 결과와 에러를 반환한다.
+    // post.Thumbnail이 비어있을 경우 "default_thumbnail.png"로 설정한다.
+    UpdatePost(post *models.Post)   (result *models.PostValidationResult, err error)
 
     // 게시물을 삭제하고 에러를 반환한다.
     DeletePost(postId int)          (err error)
@@ -42,7 +44,7 @@ type PostService interface {
     // selected column이 true인 게시물을 재설정한다.
     // 전달받은 id 목록 중 존재하지 않는 게시물이 있을 경우
     // 해당 id 리스트를 gorm.ErrRecordNotFound와 함께 반환한다.
-    ResetSelectedPosts(ids *[]int)    ([]int, error)
+    ResetSelectedPosts(ids *[]int)  ([]int, error)
 
 }
 
@@ -58,12 +60,61 @@ func NewPostServiceImpl(
     }
 }
 
-func (r *PostServiceImpl) WritePost(post *models.Post) (postId int, err error) {
-    return r.postRepo.InsertPost(post)
+func (r *PostServiceImpl) checkContent(content string) *string {
+    var msg string
+    if content == "" {
+        msg = "내용을 입력하세요."
+    } else {
+        return nil
+    }
+    return &msg
 }
 
-func (r *PostServiceImpl) UpdatePost(post *models.Post) (err error) {
-    return r.postRepo.UpdatePost(post)
+func (r *PostServiceImpl) checkTitle(title string) *string {
+    var msg string 
+    if title == "" {
+        msg  = "제목을 입력하세요."
+    } else {
+        return nil
+    }
+    return &msg
+}
+
+func (r *PostServiceImpl) checkThumbnail(thumbnail string) *string {
+    var msg string 
+    if thumbnail == "" {
+        msg = ""
+    } else {
+        return nil
+    }
+    return &msg
+}
+
+func (r *PostServiceImpl) postValidation(post *models.Post) *models.PostValidationResult {
+    if thumbnailCheck := r.checkThumbnail(post.Thumbnail); thumbnailCheck != nil {
+        post.Thumbnail = "default_thumbnail.png"
+    }
+    result := &models.PostValidationResult {
+        Title: r.checkTitle(post.Title),
+        Content: r.checkContent(post.Content),
+    }
+    return result.GetOrNil()
+}
+
+func (r *PostServiceImpl) WritePost(post *models.Post) (postId int, result *models.PostValidationResult,  err error) {
+    result = r.postValidation(post)
+    if result == nil {
+        postId, err = r.postRepo.InsertPost(post)
+    }
+    return
+}
+
+func (r *PostServiceImpl) UpdatePost(post *models.Post) (result *models.PostValidationResult, err error) {
+    result = r.postValidation(post)
+    if result == nil {
+        err = r.postRepo.UpdatePost(post)
+    }
+    return
 }
 
 func (r *PostServiceImpl) DeletePost(postId int) (err error) {

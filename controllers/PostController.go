@@ -88,13 +88,21 @@ func (p *PostControllerImpl) WritePost(c *gin.Context) {
 
     if err := c.ShouldBind(requestBody); err != nil {
         c.JSON(400, err.Error())
-    } else if postId, err := p.postService.WritePost(requestBody); err != nil {
-        c.JSON(400, err.Error())
-    } else {
-        c.JSON(200, gin.H{
-            "postId": postId,
-        })
+        return
+    } 
+    postId, result, err := p.postService.WritePost(requestBody)
+    if result != nil {
+        c.JSON(422, result)
+        return
     }
+    if err != nil {
+        c.JSON(400, err.Error())
+        return
+    }
+    c.JSON(200, gin.H {
+        "postId": postId,
+    })
+    
     
 }
 
@@ -106,16 +114,19 @@ func (p *PostControllerImpl) UpdatePost(c *gin.Context) {
 
     if err := c.ShouldBind(requestBody); err != nil {
         c.JSON(400, err.Error())
-    } else {
-        requestBody.PostID = postId
-        err = p.postService.UpdatePost(requestBody)
-        if err != nil {
-            c.JSON(400, err.Error())
-            return 
-        }
-        c.Status(20)
+        return
+    } 
+    requestBody.PostID = postId
+    result, err := p.postService.UpdatePost(requestBody)
+    if result != nil {
+        c.JSON(422, result)
+        return
     }
-
+    if err != nil {
+        c.JSON(400, err.Error())
+        return
+    }
+    c.Status(200)
 }
 
 func (p *PostControllerImpl) DeletePost(c *gin.Context) {

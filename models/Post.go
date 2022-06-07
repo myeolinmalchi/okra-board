@@ -14,6 +14,19 @@ type Post struct {
     Views       int         `json:"views"`
 }
 
+type PostValidationResult struct {
+    Title       *string     `json:"title,omitempty"`
+    Thumbnail   *string     `json:"thumbnail,omitempty"`
+    Content     *string     `json:"content,omitempty"`
+}
+
+func (result *PostValidationResult) GetOrNil() *PostValidationResult {
+    if result.Title == nil && result.Thumbnail == nil && result.Content == nil {
+        return nil
+    }
+    return result
+}
+
 // Response Only
 type Thumbnail struct {
     PostID      int         `json:"postId"`
