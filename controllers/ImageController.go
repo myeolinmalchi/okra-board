@@ -33,7 +33,7 @@ func (i *ImageControllerImpl) UploadImage(c *gin.Context) {
     }
 
     domain := os.Getenv("DOMAIN")
-    url := "http://"+domain+"/images/"+filename+".png"
+    url := "https://"+domain+"/images/"+filename+".png"
 
     c.JSON(200, gin.H { 
         "url": url,
