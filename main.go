@@ -59,6 +59,11 @@ func main() {
     postController := module.InitPostController(db)
     imageController := controllers.NewImageControllerImpl()
 
+    // route for health check
+    route.GET("/", func(c *gin.Context) {
+        c.Status(200)
+    })
+
     v1 := route.Group("/api/v1")
     {
         v1.GET("/posts_enabled", postController.GetPosts(true))
