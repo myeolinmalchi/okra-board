@@ -85,5 +85,6 @@ func main() {
         v1.POST("/image/delete", authController.Auth, imageController.DeleteImage)
     }
 
-    route.Run(":3000")
+    //route.Run(":3000")
+    route.RunTLS(":3000", "./ssl/server.crt", "./ssl/server.key")
 }

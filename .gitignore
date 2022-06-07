@@ -4,3 +4,6 @@
 
 # Config Files #
 config.json
+
+# ssl #
+/ssl
