@@ -92,7 +92,8 @@ func (r *PostServiceImpl) checkThumbnail(thumbnail string) *string {
 
 func (r *PostServiceImpl) postValidation(post *models.Post) *models.PostValidationResult {
     if thumbnailCheck := r.checkThumbnail(post.Thumbnail); thumbnailCheck != nil {
-        post.Thumbnail = "default_thumbnail.png"
+        post.Thumbnail = 
+            `<p><img src="https://api.okraseoul.com/images/default_thumbnail.png"/></p>`
     }
     result := &models.PostValidationResult {
         Title: r.checkTitle(post.Title),
