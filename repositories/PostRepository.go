@@ -93,7 +93,7 @@ func (r *PostRepositoryImpl) GetPosts(
         query = query.Where("title like ?", "%"+*keyword+"%")
     }
     r.db.Table("(?) as a", query).Select("count(*)").Find(&count)
-    query.Order("postId desc").Limit(size).Offset((page-1)*size).Find(&posts)
+    query.Order("post_id desc").Limit(size).Offset((page-1)*size).Find(&posts)
     return
 }
 
@@ -110,7 +110,7 @@ func (r *PostRepositoryImpl) GetEnabledPosts(
         query = query.Where("title like ?", "%"+*keyword+"%")
     }
     r.db.Table("(?) as a", query).Select("count(*)").Find(&count)
-    query.Order("postId desc").Limit(size).Offset((page-1)*size).Find(&posts)
+    query.Order("post_id desc").Limit(size).Offset((page-1)*size).Find(&posts)
     return
 }
 
