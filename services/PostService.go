@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"log"
 	"okra_board2/models"
 	"okra_board2/repositories"
