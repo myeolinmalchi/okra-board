@@ -28,7 +28,7 @@ func InitDBConnection() (*gorm.DB, error){
 }
 
 func InitLogger() (*os.File, error) {
-    startTime := time.Now().Format("2006-01-02")
+    startTime := time.Now().Format("2006-01-02T15_04_05")
     fileName := "log/log-" + startTime
     if file, err := os.Create(strings.TrimSpace(fileName)); err != nil {
         return nil, err

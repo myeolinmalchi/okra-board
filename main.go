@@ -59,7 +59,7 @@ func main() {
     postController := module.InitPostController(db)
     imageController := controllers.NewImageControllerImpl()
 
-    // route for health check
+    // Route for health check
     route.GET("/", func(c *gin.Context) {
         c.Status(200)
     })
