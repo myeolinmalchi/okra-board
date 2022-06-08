@@ -1,9 +1,15 @@
 package services
 
 import (
+	"errors"
+	"log"
 	"okra_board2/models"
 	"okra_board2/repositories"
+	"os"
+	"strings"
 
+	"github.com/PuerkitoBio/goquery"
+	"golang.org/x/net/html"
 	"gorm.io/gorm"
 )
 
@@ -119,6 +125,26 @@ func (r *PostServiceImpl) UpdatePost(post *models.Post) (result *models.PostVali
 }
 
 func (r *PostServiceImpl) DeletePost(postId int) (err error) {
+    post, err := r.postRepo.GetPost(postId)
+    if err != nil { return }
+    node, err := html.Parse(strings.NewReader(post.Content))
+    if err != nil { return }
+
+    doc := goquery.NewDocumentFromNode(node)
+
+    images := doc.Find("img")
+    images.Each(func(idx int, img *goquery.Selection) {
+        //"https://api.okraseoul.com/images/filename"
+        src := img.AttrOr("src", "")
+        temp := strings.Split(src, "/")
+        filename := temp[4]
+        if err := os.Remove("./public/images/"+filename); err!= nil {
+            log.Println(err)
+        } else {
+            log.Println("이미지가 삭제되었습니다: "+filename)
+        }
+    })
+
     return r. postRepo.DeletePost(postId)
 }
 
