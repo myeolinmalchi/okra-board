@@ -35,6 +35,20 @@ type PostRepository interface {
     // keyword: optional. if nil, select all title posts.
     GetEnabledPosts(page, size int, boardId *int, keyword *string)  (posts []models.Post, count int)
 
+    // Select posts with pagination, order and optional condition
+    // enabled: if true, returns posts which status is true.
+    // page, size: must contained. parameters for pagination.
+    // boardId: optional. if nil, select from all boards.
+    // keyword: optional. if nil, select all title posts.
+    // orderBy: order.
+    GetPostsOrderBy(
+        enabled bool,
+        page, size int,
+        boardId *int,
+        keyword *string,
+        orderBy ... string,
+    )                               (posts []models.Post, count int)
+
     // 홈페이지의 메인 화면에 썸네일을 출력 할 게시물들을 재설정한다.
     ResetSelectedPost(ids *[]int)   (err error)
 
@@ -111,6 +125,31 @@ func (r *PostRepositoryImpl) GetEnabledPosts(
     }
     r.db.Table("(?) as a", query).Select("count(*)").Find(&count)
     query.Order("post_id desc").Limit(size).Offset((page-1)*size).Find(&posts)
+    return
+}
+
+func (r *PostRepositoryImpl) GetPostsOrderBy(
+    enabled bool,
+    page, size int,
+    boardId *int,
+    keyword *string,
+    orderBy ... string,
+) (posts[]models.Post, count int) {
+    query := r.db.Table("posts")
+    if enabled { 
+        query = query.Where("status = ?", true) 
+    }
+    if boardId != nil { 
+        query = query.Where("board_id = ?", boardId) 
+    }
+    if keyword != nil { 
+        query = query.Where("title like ?", "%"+*keyword+"%") 
+    }
+    r.db.Table("(?) as a", query).Select("count(*)").Find(&count)
+    for _, order := range orderBy {
+        query = query.Order(order)
+    }
+    query.Limit(size).Offset((page-1)*size).Find(&posts)
     return
 }
 

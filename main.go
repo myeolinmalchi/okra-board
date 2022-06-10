@@ -15,7 +15,14 @@ import (
 
 func main() {
 
-    if file, err := config.InitLogger(); err != nil {
+    conf, err := config.LoadConfig()
+    if err != nil {
+        log.Println("설정 파일을 불러오지 못했습니다. 서버를 종료합니다.")    
+        log.Println(err.Error())
+        return
+    }
+
+    if file, err := config.InitLogger(conf); err != nil {
         log.Println("로그 파일을 생성하지 못했습니다. 서버를 종료합니다.")
         log.Println(err.Error())
         return
@@ -24,16 +31,9 @@ func main() {
         log.SetOutput(file)
     }
 
-    db, err := config.InitDBConnection()
+    db, err := config.InitDBConnection(conf)
     if err != nil {
         log.Println("DB 연결에 실패했습니다. 서버를 종료합니다.")
-        log.Println(err.Error())
-        return
-    }
-
-    conf, err := config.LoadConfig()
-    if err != nil {
-        log.Println("설정 파일을 찾지 못했습니다. 서버를 종료합니다.")    
         log.Println(err.Error())
         return
     }
@@ -91,5 +91,4 @@ func main() {
     }
 
     route.Run(":3000")
-    //route.RunTLS(":3000", "./ssl/server.crt", "./ssl/server.key")
 }

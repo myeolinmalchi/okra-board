@@ -23,6 +23,7 @@ type PostService interface {
     UpdatePost(post *models.Post)   (result *models.PostValidationResult, err error)
 
     // 게시물을 삭제하고 에러를 반환한다.
+    // 게시물에 포함된 이미지도 함께 삭제한다.
     DeletePost(postId int)          (err error)
 
     // 게시글을 불러온다.
@@ -162,11 +163,13 @@ func (r *PostServiceImpl) GetPosts(
     boardId *int,
     keyword *string,
 ) (posts []models.Post, count int) {
-    if enabled {
-        posts, count = r.postRepo.GetEnabledPosts(page, size, boardId, keyword)
-    } else {
-        posts, count = r.postRepo.GetPosts(page, size, boardId, keyword)
-    }
+    posts, count = r.postRepo.GetPostsOrderBy(
+        enabled,
+        page, size,
+        boardId, 
+        keyword, 
+        "post_id desc",
+    )
     return
 }
 
