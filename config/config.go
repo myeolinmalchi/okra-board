@@ -21,6 +21,7 @@ type Config struct {
     AccessSecret    string      `json:"access_secret"`
     RefreshSecret   string      `json:"refresh_secret"`
     Domain          string      `json:"domain"`
+    DefaultThumbnail string     `json:"default_thumbnail"`
     DB              DBConfig    `json:"db"`
     Log             LogConfig   `json:"log"`
 }

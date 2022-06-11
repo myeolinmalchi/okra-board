@@ -49,6 +49,9 @@ func (i *ImageControllerImpl) DeleteImage(c *gin.Context) {
     }
     errs := []string{}
     for _, filename := range requestBody {
+        if filename == os.Getenv("DEFAULT_THUMBNAIL") {
+            continue
+        }
         if err := os.Remove("./public/images/"+filename); err!= nil {
             log.Println(err)
             errs = append(errs, filename)

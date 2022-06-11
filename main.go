@@ -41,6 +41,7 @@ func main() {
     os.Setenv("ACCESS_SECRET", conf.AccessSecret)
     os.Setenv("REFRESH_SECRET", conf.RefreshSecret)
     os.Setenv("DOMAIN", conf.Domain)
+    os.Setenv("DEFAULT_THUMBNAIL", conf.DefaultThumbnail)
     
     route := gin.Default()
     route.Use(cors.New(cors.Config {

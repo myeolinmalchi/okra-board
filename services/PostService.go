@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"log"
 	"okra_board2/models"
 	"okra_board2/repositories"
@@ -98,8 +99,10 @@ func (r *PostServiceImpl) checkThumbnail(thumbnail string) *string {
 
 func (r *PostServiceImpl) postValidation(post *models.Post) *models.PostValidationResult {
     if thumbnailCheck := r.checkThumbnail(post.Thumbnail); thumbnailCheck != nil {
-        post.Thumbnail = 
-            `<p><img src="https://api.okraseoul.com/images/default_thumbnail.png"/></p>`
+        post.Thumbnail = fmt.Sprintf(
+            `<p><img src="https://api.okraseoul.com/images/%s"/></p>`,
+            os.Getenv("DEFAULT_THUMBNAIL"),
+        )
     }
     result := &models.PostValidationResult {
         Title: r.checkTitle(post.Title),
@@ -138,6 +141,9 @@ func (r *PostServiceImpl) DeletePost(postId int) (err error) {
         src := img.AttrOr("src", "")
         temp := strings.Split(src, "/")
         filename := temp[4]
+        if filename == os.Getenv("DEFAULT_THUMBNAIL") {
+            return
+        }
         if err := os.Remove("./public/images/"+filename); err!= nil {
             log.Println(err)
         } else {
@@ -145,7 +151,7 @@ func (r *PostServiceImpl) DeletePost(postId int) (err error) {
         }
     })
 
-    return r. postRepo.DeletePost(postId)
+    return r.postRepo.DeletePost(postId)
 }
 
 func (r *PostServiceImpl) GetPost(enabled bool, postId int) (post *models.Post, err error) {
