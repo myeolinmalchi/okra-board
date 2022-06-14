@@ -6,12 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gin-gonic/gin"    
-
-    "github.com/aws/aws-sdk-go/aws"
-    "github.com/aws/aws-sdk-go/aws/credentials"
-    "github.com/aws/aws-sdk-go/aws/session"
-    "github.com/aws/aws-sdk-go/service/s3"
-
 )
 
 type ImageController interface {
@@ -19,11 +13,6 @@ type ImageController interface {
     DeleteImage(c *gin.Context)
 }
 
-type ImageControllerImpl2 struct {}
-
-func NewImageControllerImpl2() ImageController {
-    return &ImageControllerImpl2{}
-}
 
 type ImageControllerImpl struct {}
 
