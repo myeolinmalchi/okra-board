@@ -59,7 +59,7 @@ func (p *PostControllerImpl) GetPosts(enabled bool) gin.HandlerFunc {
         posts, count := p.postService.GetPosts(enabled, page, size, boardId, keyword)
         c.IndentedJSON(200, gin.H {
             "nowPage": page,
-            "pageCount": math.Ceil(float64(count) / float64(size)) + 1,
+            "pageCount": math.Ceil(float64(count) / float64(size)),
             "pageSize": size,
             "posts": posts,
         })
