@@ -1,8 +1,9 @@
 package controllers
 
 import (
+	"math"
+	"okra_board2/models"
 	"okra_board2/services"
-    "okra_board2/models"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -58,7 +59,7 @@ func (p *PostControllerImpl) GetPosts(enabled bool) gin.HandlerFunc {
         posts, count := p.postService.GetPosts(enabled, page, size, boardId, keyword)
         c.IndentedJSON(200, gin.H {
             "nowPage": page,
-            "pageCount": int(count / size) + 1,
+            "pageCount": math.Ceil(float64(count / size)) + 1,
             "pageSize": size,
             "posts": posts,
         })
