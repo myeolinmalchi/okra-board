@@ -89,7 +89,7 @@ func (r *PostServiceImpl) checkTitle(title string) *string {
 
 func (r *PostServiceImpl) checkThumbnail(thumbnail string) *string {
     var msg string 
-    if thumbnail == "" {
+    if thumbnail == "" || thumbnail == "<p><br></p>" {
         msg = ""
     } else {
         return nil
