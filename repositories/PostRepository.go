@@ -164,7 +164,7 @@ func (r *PostRepositoryImpl) ResetSelectedPost(ids *[]int) (err error) {
 }
 
 func (r *PostRepositoryImpl) GetSelectedThumbnails() (thumbnails []models.Thumbnail) {
-    r.db.Table("posts").Where("selected = ? ", true).Find(&thumbnails)
+    r.db.Table("posts").Where("selected = ? ", true).Order("post_id desc").Find(&thumbnails)
     return
 }
 

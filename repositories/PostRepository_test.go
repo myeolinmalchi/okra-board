@@ -13,7 +13,11 @@ import (
 )
 
 func TestPostCRUD(t *testing.T) {
-    db, err := config.InitDBConnection()
+
+    conf, err := config.LoadConfig()
+    if err != nil { assert.Error(t, err) }
+
+    db, err := config.InitDBConnection(conf)
     if err != nil { assert.Error(t, err) }
     r := repositories.NewPostRepositoryImpl(db)
 
