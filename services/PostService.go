@@ -69,7 +69,7 @@ func NewPostServiceImpl(
 
 func (r *PostServiceImpl) checkContent(content string) *string {
     var msg string
-    if content == "" {
+    if content == "" || content == "<p><br></p>"{
         msg = "내용을 입력하세요."
     } else {
         return nil
