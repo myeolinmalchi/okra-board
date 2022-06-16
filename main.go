@@ -43,7 +43,8 @@ func main() {
     os.Setenv("DOMAIN", conf.Domain)
     os.Setenv("DEFAULT_THUMBNAIL", conf.DefaultThumbnail)
     
-    route := gin.Default()
+    gin.SetMode(gin.ReleaseMode)
+    route := gin.New()
     route.Use(cors.New(cors.Config {
         AllowAllOrigins:    true,
         AllowMethods:       []string{"GET", "POST", "PUT", "DELETE"},
@@ -52,6 +53,8 @@ func main() {
         AllowCredentials:   true,
         MaxAge: 12 * time.Hour,
     }))
+    route.Use(gin.LoggerWithConfig(gin.LoggerConfig{SkipPaths: []string{"/"}}))
+    route.Use(gin.Recovery())
 
     route.Static("/images", "./public/images")
 
