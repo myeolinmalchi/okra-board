@@ -7,7 +7,9 @@
 package module
 
 import (
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gorm.io/gorm"
+	"okra_board2/config"
 	"okra_board2/controllers"
 	"okra_board2/repositories"
 	"okra_board2/services"
@@ -31,9 +33,9 @@ func InitAuthController(db *gorm.DB) controllers.AuthController {
 	return authController
 }
 
-func InitPostController(db *gorm.DB) controllers.PostController {
+func InitPostController(db *gorm.DB, conf *config.Config, client *s3.Client) controllers.PostController {
 	postRepository := repositories.NewPostRepositoryImpl(db)
-	postService := services.NewPostServiceImpl(postRepository)
+	postService := services.NewPostServiceImpl(postRepository, conf, client)
 	postController := controllers.NewPostControllerImpl(postService)
 	return postController
 }

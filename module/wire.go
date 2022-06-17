@@ -7,8 +7,10 @@ import (
 	"okra_board2/repositories"
 	"okra_board2/services"
 	"okra_board2/controllers"
+    "okra_board2/config"
 	"gorm.io/gorm"
 	"github.com/google/wire"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 
@@ -32,7 +34,11 @@ func InitAuthController(db *gorm.DB) (a controllers.AuthController) {
     return
 }
 
-func InitPostController(db *gorm.DB) (c controllers.PostController) {
+func InitPostController(
+    db *gorm.DB, 
+    conf *config.Config, 
+    client *s3.Client,
+) (c controllers.PostController) {
     wire.Build( 
         repositories.NewPostRepositoryImpl,
         services.NewPostServiceImpl,
