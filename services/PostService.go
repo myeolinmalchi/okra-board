@@ -1,14 +1,18 @@
 package services
 
 import (
+    "context"
 	"fmt"
 	"log"
+	"okra_board2/config"
 	"okra_board2/models"
 	"okra_board2/repositories"
 	"os"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"golang.org/x/net/html"
 	"gorm.io/gorm"
 )
@@ -56,14 +60,20 @@ type PostService interface {
 }
 
 type PostServiceImpl struct {
-    postRepo repositories.PostRepository
+    postRepo    repositories.PostRepository
+    conf        *config.Config
+    client      *s3.Client
 }
 
 func NewPostServiceImpl(
     postRepo repositories.PostRepository,
+    conf *config.Config,
+    client *s3.Client,
 ) PostService {
     return &PostServiceImpl{
         postRepo: postRepo,
+        conf: conf,
+        client: client,
     }
 }
 
@@ -100,7 +110,7 @@ func (r *PostServiceImpl) checkThumbnail(thumbnail string) *string {
 func (r *PostServiceImpl) postValidation(post *models.Post) *models.PostValidationResult {
     if thumbnailCheck := r.checkThumbnail(post.Thumbnail); thumbnailCheck != nil {
         post.Thumbnail = fmt.Sprintf(
-            `<p><img src="https://api.okraseoul.com/images/%s"/></p>`,
+            `<p><img src="https://"`+r.conf.AWS.Domain+`/images/%s"/></p>`,
             os.Getenv("DEFAULT_THUMBNAIL"),
         )
     }
@@ -137,14 +147,18 @@ func (r *PostServiceImpl) DeletePost(postId int) (err error) {
 
     images := doc.Find("img")
     images.Each(func(idx int, img *goquery.Selection) {
-        //"https://api.okraseoul.com/images/filename"
+        //"https://~~~.com/public.okraseoul.com/images/filename"
         src := img.AttrOr("src", "")
         temp := strings.Split(src, "/")
-        filename := temp[4]
+        filename := temp[5]
         if filename == os.Getenv("DEFAULT_THUMBNAIL") {
             return
         }
-        if err := os.Remove("./public/images/"+filename); err!= nil {
+        _, err := r.client.DeleteObject(context.TODO(), &s3.DeleteObjectInput {
+            Bucket: aws.String(r.conf.AWS.Bucket),
+            Key:    aws.String("images/"+filename),
+        })
+        if err!= nil {
             log.Println(err)
         } else {
             log.Println("이미지가 삭제되었습니다: "+filename)

@@ -38,6 +38,13 @@ func main() {
         return
     }
 
+    s3, err := config.InitAwsS3Client(conf)
+    if err != nil {
+        log.Println("AWS S3 연결에 실패했습니다. 서버를 종료합니다.")
+        log.Println(err.Error())
+        return
+    }
+
     os.Setenv("ACCESS_SECRET", conf.AccessSecret)
     os.Setenv("REFRESH_SECRET", conf.RefreshSecret)
     os.Setenv("DOMAIN", conf.Domain)
@@ -60,8 +67,9 @@ func main() {
 
     authController := module.InitAuthController(db)
     adminController := module.InitAdminController(db)
-    postController := module.InitPostController(db)
-    imageController := controllers.NewImageControllerImpl()
+    postController := module.InitPostController(db, conf, s3)
+    //imageController := controllers.NewImageControllerImpl()
+    imageController := controllers.NewImageControllerImpl2(conf, s3)
 
     // Route for health check
     route.GET("/", func(c *gin.Context) {
@@ -90,8 +98,8 @@ func main() {
         v1.POST("/admin/logout", authController.Logout)
         v1.POST("/admin/auth", authController.ReissueAccessToken)
 
-        v1.POST("/image/upload", authController.Auth, imageController.UploadImage) 
-        v1.POST("/image/delete", authController.Auth, imageController.DeleteImage)
+        v1.POST("/image/upload", imageController.UploadImage) 
+        v1.POST("/image/delete", imageController.DeleteImage)
     }
 
     route.Run(":3000")

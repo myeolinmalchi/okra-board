@@ -24,6 +24,7 @@ type Config struct {
     DefaultThumbnail string     `json:"default_thumbnail"`
     DB              DBConfig    `json:"db"`
     Log             LogConfig   `json:"log"`
+    AWS             AWSConfig   `json:"aws"`
 }
 
 type DBConfig struct {
@@ -49,6 +50,14 @@ type LogConfig struct {
     Path        string          `json:"path"`
     TimeFormat  string          `json:"time_format"`
     Prefix      string          `json:"prefix"`
+}
+
+type AWSConfig struct {
+    AccessKeyID string          `json:"access_key_id"`
+    SecretKey   string          `json:"secret_key"`
+    Region      string          `json:"region"`
+    Bucket      string          `json:"bucket"`
+    Domain      string          `json:"domain"`
 }
 
 func LoadConfig() (*Config, error){

@@ -13,7 +13,6 @@ type ImageController interface {
     DeleteImage(c *gin.Context)
 }
 
-
 type ImageControllerImpl struct {}
 
 func NewImageControllerImpl() ImageController {
@@ -25,12 +24,14 @@ func (i *ImageControllerImpl) UploadImage(c *gin.Context) {
     if err != nil {
         log.Println(err)
         c.Status(400)
+        return
     }
 
     filename := uuid.NewString()
     if err := c.SaveUploadedFile(file, "./public/images/"+filename+".png"); err != nil {
         log.Println(err)
         c.Status(400)
+        return
     }
 
     domain := os.Getenv("DOMAIN")
