@@ -110,7 +110,8 @@ func (r *PostServiceImpl) checkThumbnail(thumbnail string) *string {
 func (r *PostServiceImpl) postValidation(post *models.Post) *models.PostValidationResult {
     if thumbnailCheck := r.checkThumbnail(post.Thumbnail); thumbnailCheck != nil {
         post.Thumbnail = fmt.Sprintf(
-            `<p><img src="https://"`+r.conf.AWS.Domain+`/images/%s"/></p>`,
+            `<p><img src="https://%s/images/%s"/></p>`,
+            r.conf.AWS.Domain,
             os.Getenv("DEFAULT_THUMBNAIL"),
         )
     }
