@@ -114,6 +114,7 @@ func (r *PostServiceImpl) postValidation(post *models.Post) *models.PostValidati
             r.conf.AWS.Domain,
             os.Getenv("DEFAULT_THUMBNAIL"),
         )
+        fmt.Println(post.Thumbnail)
     }
     result := &models.PostValidationResult {
         Title: r.checkTitle(post.Title),
