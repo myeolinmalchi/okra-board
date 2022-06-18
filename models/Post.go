@@ -7,7 +7,7 @@ type Post struct {
     BoardID     int         `json:"boardId"`
     Title       string      `json:"title"`
     Thumbnail   string      `json:"thumbnail"`
-    Content     string      `json:"content"`
+    Content     string      `json:"content,omitempty"`
     AddedDate   time.Time   `json:"addedDate,omitempty" gorm:"->"`
     Status      bool        `json:"status"`
     Selected    bool        `json:"selected"`
