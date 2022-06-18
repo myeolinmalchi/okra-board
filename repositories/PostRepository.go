@@ -27,13 +27,13 @@ type PostRepository interface {
     // page, size: must contain. parameters for pagination
     // boardId: optional. if nil, select from all boards.
     // keyword: optional. if nil, select all title posts.
-    GetPosts(page, size int, boardId *int, keyword *string)         (posts []models.NoContentPost, count int)
+    GetPosts(page, size int, boardId *int, keyword *string)         (posts []models.Post, count int)
 
     // Select enabled posts with pagination and optional condition
     // page, size: must contained. parameters for pagination.
     // boardId: optional. if nil, select from all boards.
     // keyword: optional. if nil, select all title posts.
-    GetEnabledPosts(page, size int, boardId *int, keyword *string)  (posts []models.NoContentPost, count int)
+    GetEnabledPosts(page, size int, boardId *int, keyword *string)  (posts []models.Post, count int)
 
     // Select posts with pagination, order and optional condition
     // enabled: if true, returns posts which status is true.
@@ -47,7 +47,7 @@ type PostRepository interface {
         boardId *int,
         keyword *string,
         orderBy ... string,
-    )                               (posts []models.NoContentPost, count int)
+    )                               (posts []models.Post, count int)
 
     // 홈페이지의 메인 화면에 썸네일을 출력 할 게시물들을 재설정한다.
     ResetSelectedPost(ids *[]int)   (err error)
@@ -98,8 +98,8 @@ func (r *PostRepositoryImpl) GetPosts(
     page, size int, 
     boardId *int, 
     keyword *string,
-) (posts []models.NoContentPost, count int) {
-    query := r.db.Model(&models.Post{}) 
+) (posts []models.Post, count int) {
+    query := r.db.Model(&models.Post{}).Omit("Content")
     if boardId != nil {
         query = query.Where("board_id = ?", boardId)
     }
@@ -115,8 +115,8 @@ func (r *PostRepositoryImpl) GetEnabledPosts(
     page, size int, 
     boardId *int, 
     keyword *string,
-) (posts []models.NoContentPost, count int) {
-    query := r.db.Model(&models.Post{}).Where("status = ?", true)
+) (posts []models.Post, count int) {
+    query := r.db.Model(&models.Post{}).Omit("Content").Where("status = ?", true)
     if boardId != nil {
         query = query.Where("board_id = ?", boardId)
     }
@@ -134,9 +134,8 @@ func (r *PostRepositoryImpl) GetPostsOrderBy(
     boardId *int,
     keyword *string,
     orderBy ... string,
-) (posts []models.NoContentPost, count int) {
-    //query := r.db.Model(&models.Post{}).Omit("Content")
-    query := r.db.Model(&models.Post{})
+) (posts[]models.Post, count int) {
+    query := r.db.Model(&models.Post{}).Omit("Content")
     if enabled { 
         query = query.Where("status = ?", true) 
     }

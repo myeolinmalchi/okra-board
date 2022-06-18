@@ -34,15 +34,3 @@ type Thumbnail struct {
     Title       string      `json:"title"`
     Thumbnail   string      `json:"thumbnail"`
 }
-
-// Response Only
-type NoContentPost struct {
-    PostID      int         `json:"postId"`
-    BoardID     int         `json:"boardId"`
-    Title       string      `json:"title"`
-    Thumbnail   string      `json:"thumbnail"`
-    AddedDate   time.Time   `json:"addedDate"`
-    Status      bool        `json:"status"`
-    Selected    bool        `json:"selected"`
-    Views       int         `json:"views"`
-}

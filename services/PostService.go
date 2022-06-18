@@ -47,7 +47,7 @@ type PostService interface {
         page, size int,
         boardId *int,
         keyword *string,
-    )                               (posts []models.NoContentPost, count int)
+    )                               (posts []models.Post, count int)
 
     // selected colunm이 true인 게시글들의 썸네일 및 제목 정보를 불러온다.
     GetSelectedThumbnails()         (thumbnaiils []models.Thumbnail)
@@ -184,7 +184,7 @@ func (r *PostServiceImpl) GetPosts(
     page, size int,
     boardId *int,
     keyword *string,
-) (posts []models.NoContentPost, count int) {
+) (posts []models.Post, count int) {
     posts, count = r.postRepo.GetPostsOrderBy(
         enabled,
         page, size,
