@@ -44,6 +44,7 @@ type PostService interface {
     // keyword 속성이 nil이 아닐 경우 제목에 keyword가 포함된 게시글만을 검색한다.
     GetPosts(
         enabled bool,
+        selected *bool,
         page, size int,
         boardId *int,
         keyword *string,
@@ -181,12 +182,14 @@ func (r *PostServiceImpl) GetPost(enabled bool, postId int) (post *models.Post, 
 
 func (r *PostServiceImpl) GetPosts(
     enabled bool,
+    selected *bool,
     page, size int,
     boardId *int,
     keyword *string,
 ) (posts []models.Post, count int) {
     posts, count = r.postRepo.GetPostsOrderBy(
         enabled,
+        selected,
         page, size,
         boardId, 
         keyword, 

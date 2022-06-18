@@ -33,6 +33,7 @@ func (p *PostControllerImpl) GetPosts(enabled bool) gin.HandlerFunc {
         var err error
         var (
             size, page int
+            selected *bool
             boardId *int
             keyword *string
         )
@@ -42,6 +43,11 @@ func (p *PostControllerImpl) GetPosts(enabled bool) gin.HandlerFunc {
         page, err = strconv.Atoi(c.DefaultQuery("page", "1"))
         if err != nil { c.JSON(400, err.Error()); return }
 
+        if selectedStr, selectedExists := c.GetQuery("selected"); selectedExists {
+            temp, err := strconv.ParseBool(selectedStr)
+            if err != nil { c.JSON(400, err.Error()); return }
+            selected = &temp
+        }
         if boardIdStr, boardIdExists := c.GetQuery("boarId"); boardIdExists {
             temp, err := strconv.Atoi(boardIdStr)
             if err != nil { c.JSON(400, err.Error()); return }
@@ -56,7 +62,7 @@ func (p *PostControllerImpl) GetPosts(enabled bool) gin.HandlerFunc {
             keyword = nil
         }
 
-        posts, count := p.postService.GetPosts(enabled, page, size, boardId, keyword)
+        posts, count := p.postService.GetPosts(enabled, selected, page, size, boardId, keyword)
         c.IndentedJSON(200, gin.H {
             "nowPage": page,
             "pageCount": math.Ceil(float64(count) / float64(size)),

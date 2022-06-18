@@ -43,6 +43,7 @@ type PostRepository interface {
     // orderBy: order.
     GetPostsOrderBy(
         enabled bool,
+        selected *bool,
         page, size int,
         boardId *int,
         keyword *string,
@@ -130,6 +131,7 @@ func (r *PostRepositoryImpl) GetEnabledPosts(
 
 func (r *PostRepositoryImpl) GetPostsOrderBy(
     enabled bool,
+    selected *bool,
     page, size int,
     boardId *int,
     keyword *string,
@@ -138,6 +140,9 @@ func (r *PostRepositoryImpl) GetPostsOrderBy(
     query := r.db.Model(&models.Post{}).Omit("Content")
     if enabled { 
         query = query.Where("status = ?", true) 
+    }
+    if selected != nil {
+        query = query.Where("selected = ?", selected)
     }
     if boardId != nil { 
         query = query.Where("board_id = ?", boardId) 
