@@ -99,7 +99,7 @@ func (r *PostRepositoryImpl) GetPosts(
     boardId *int, 
     keyword *string,
 ) (posts []models.Post, count int) {
-    query := r.db.Table("posts")
+    query := r.db.Model(&models.Post{}).Omit("Content")
     if boardId != nil {
         query = query.Where("board_id = ?", boardId)
     }
@@ -116,7 +116,7 @@ func (r *PostRepositoryImpl) GetEnabledPosts(
     boardId *int, 
     keyword *string,
 ) (posts []models.Post, count int) {
-    query := r.db.Table("posts").Where("status = ?", true)
+    query := r.db.Model(&models.Post{}).Omit("Content").Where("status = ?", true)
     if boardId != nil {
         query = query.Where("board_id = ?", boardId)
     }
@@ -135,7 +135,7 @@ func (r *PostRepositoryImpl) GetPostsOrderBy(
     keyword *string,
     orderBy ... string,
 ) (posts[]models.Post, count int) {
-    query := r.db.Table("posts")
+    query := r.db.Model(&models.Post{}).Omit("Content")
     if enabled { 
         query = query.Where("status = ?", true) 
     }

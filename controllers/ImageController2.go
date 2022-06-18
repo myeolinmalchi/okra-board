@@ -75,7 +75,6 @@ func (i *ImageControllerImpl2) DeleteImage(c *gin.Context) {
         if filename == os.Getenv("DEFAULT_THUMBNAIL") {
             continue
         }
-        
         _, err := i.client.DeleteObject(context.TODO(), &s3.DeleteObjectInput {
             Bucket: aws.String(i.conf.AWS.Bucket),
             Key:    aws.String("images/"+filename),
