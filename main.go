@@ -98,9 +98,8 @@ func main() {
         v1.POST("/admin/logout", authController.Logout)
         v1.POST("/admin/auth", authController.ReissueAccessToken)
 
-        v1.POST("/image/upload", imageController.UploadImage) 
-        v1.POST("/image/delete", imageController.DeleteImage)
+        v1.POST("/image/upload", authController.Auth, imageController.UploadImage) 
+        v1.POST("/image/delete", authController.Auth, imageController.DeleteImage)
     }
-
     route.Run(":3000")
 }
