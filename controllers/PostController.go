@@ -80,8 +80,15 @@ func (p *PostControllerImpl) GetPost(enabled bool) gin.HandlerFunc {
 
         postId, err = strconv.Atoi(c.Param("postId"))
         if err != nil { c.JSON(400, err.Error()); return }
+
+        var status *bool
+        if enabled { 
+            status = &enabled 
+        } else { 
+            status = nil 
+        }
         
-        post, err := p.postService.GetPost(enabled, postId)
+        post, err := p.postService.GetPost(status, postId)
         if err == gorm.ErrRecordNotFound { c.Status(404); return }
 
         c.IndentedJSON(200, post)

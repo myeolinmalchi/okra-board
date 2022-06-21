@@ -35,7 +35,7 @@ type PostService interface {
     // enabled 속성이 true일 경우, 
     // status 열이 false인 게시물에 대하여 
     // RecordNotFound 에러를 반환한다.
-    GetPost(enabled bool, postId int)             (post *models.Post, err error)
+    GetPost(status *bool, postId int)             (post *models.Post, err error)
     
     // 조건에 부합하는 게시글의 개수와 함께 게시글 배열을 반환한다.
     // enabled 속성이 true일 경우, status 열이 true인 게시글만을 불러온다.
@@ -43,7 +43,7 @@ type PostService interface {
     // boardId 속성이 nil일 경우 전체 게시판에서 게시글을 검색한다.
     // keyword 속성이 nil이 아닐 경우 제목에 keyword가 포함된 게시글만을 검색한다.
     GetPosts(
-        enabled bool,
+        status bool,
         selected *bool,
         page, size int,
         boardId *int,
@@ -57,6 +57,9 @@ type PostService interface {
     // 전달받은 id 목록 중 존재하지 않는 게시물이 있을 경우
     // 해당 id 리스트를 gorm.ErrRecordNotFound와 함께 반환한다.
     ResetSelectedPosts(ids *[]int)  ([]int, error)
+
+    // 사용되지 않는 이미지를 s3에서 삭제한다.
+    DeleteUnusedImages()            (err error)
 
 }
 
@@ -140,7 +143,7 @@ func (r *PostServiceImpl) UpdatePost(post *models.Post) (result *models.PostVali
     return
 }
 
-func (r *PostServiceImpl) deleteImage(htmlStr string) (err error) {
+func (r *PostServiceImpl) deleteImageFromHTML(htmlStr string) (err error) {
     node, err := html.Parse(strings.NewReader(htmlStr))
     if err != nil { return }
 
@@ -168,27 +171,49 @@ func (r *PostServiceImpl) deleteImage(htmlStr string) (err error) {
     return nil
 }
 
+func (r *PostServiceImpl) DeleteUnusedImages() (err error) {
+    //posts := r.postRepo.GetAllPosts();
+    params := &s3.ListObjectsInput {
+        Bucket: aws.String(r.conf.AWS.Bucket),
+        Prefix: aws.String("images"),
+    }
+    resp, err := r.client.ListObjects(context.TODO(), params)
+    if err != nil  { return }
+
+    var filenames []string
+
+    for _, key := range resp.Contents {
+        filenames = append(filenames, *key.Key)
+    }
+
+    return
+}
+
 func (r *PostServiceImpl) DeletePost(postId int) (err error) {
-    post, err := r.postRepo.GetPost(postId)
+    post, err := r.postRepo.GetPost(nil, postId)
     if err != nil { return }
 
-    err = r.deleteImage(post.Content)
+    err = r.deleteImageFromHTML(post.Content)
     if err != nil { return }
 
-    err = r.deleteImage(post.Thumbnail)
+    err = r.deleteImageFromHTML(post.Thumbnail)
     if err != nil { return }
 
     return r.postRepo.DeletePost(postId)
 }
 
+func (r *PostServiceImpl) GetPost(status *bool, postId int) (post *models.Post, err error) {
+    post, err = r.postRepo.GetPost(status, postId)
+    if err != nil { return }
 
-
-func (r *PostServiceImpl) GetPost(enabled bool, postId int) (post *models.Post, err error) {
-    if enabled {
-        post, err = r.postRepo.GetEnabledPost(postId)
-    } else {
-        post, err = r.postRepo.GetPost(postId)
+    if prevPost, err := r.postRepo.GetPrevPostInfo(status, postId); err != nil {
+        post.Prev = *prevPost
     }
+
+    if nextPost, err := r.postRepo.GetNextPostInfo(status, postId); err != nil {
+        post.Next = *nextPost
+    }
+
     return
 }
 
@@ -199,7 +224,7 @@ func (r *PostServiceImpl) GetPosts(
     boardId *int,
     keyword *string,
 ) (posts []models.Post, count int) {
-    posts, count = r.postRepo.GetPostsOrderBy(
+    posts, count = r.postRepo.GetPosts(
         enabled,
         selected,
         page, size,

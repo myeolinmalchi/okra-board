@@ -12,6 +12,14 @@ type Post struct {
     Status      bool        `json:"status"`
     Selected    bool        `json:"selected"`
     Views       int         `json:"views"`
+
+    Prev        PostE       `json:"prev,omitempty" gorm:"-"`
+    Next        PostE       `json:"next,omitempty" gorm:"-"`
+}
+
+type PostE struct {
+    PostID      string      `json:"postId"`
+    Title       string      `json:"title"`
 }
 
 // Response Only

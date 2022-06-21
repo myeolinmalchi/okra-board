@@ -8,11 +8,32 @@ import (
 
 type PostRepository interface {
 
-    // Select Post and returns with error
-    GetPost(postId int)             (post *models.Post, err error)
+    // posts 테이블에서 게시물 정보를 불러온다.
+    // status == nil => 게시물의 status를 구분하지 않고 검색한다.
+    // status != nil => 지정된 status의 게시물중에서 검색한다. 
+    // 조건에 부합하는 게시글을 찾지 못할 경우 err 반환.
+    GetPost(
+        status *bool,
+        postId int,
+    )                               (post *models.Post, err error)
 
-    // Select Post and if it is unabled, returns error.
-    GetEnabledPost(postId int)      (post *models.Post, err error)
+    // 이전 게시물의 post_id와 title 정보를 검색한다.
+    // status == nil => 게시물의 status를 구분하지 않고 검색한다.
+    // status != nil => 지정된 status의 게시물중에서 검색한다. 
+    // 조건에 부합하는 게시글을 찾지 못할 경우 err 반환.
+    GetPrevPostInfo(
+        status *bool,
+        postId int,
+    )                               (prevPost *models.PostE, err error)
+
+    // 다음 게시물의 post_id와 title 정보를 검색한다.
+    // status == nil => 게시물의 status를 구분하지 않고 검색한다.
+    // status != nil => 지정된 status의 게시물중에서 검색한다. 
+    // 조건에 부합하는 게시글을 찾지 못할 경우 err 반환.
+    GetNextPostInfo(
+        status *bool,
+        postId int,
+    )                               (nextPost *models.PostE, err error)
 
     // Insert Post and returns error
     InsertPost(post *models.Post)   (postId int, err error)
@@ -23,25 +44,13 @@ type PostRepository interface {
     // Delete Post and returns error
     DeletePost(postId int)          (err error)
 
-    // Select posts with pagination and optional condition
-    // page, size: must contain. parameters for pagination
-    // boardId: optional. if nil, select from all boards.
-    // keyword: optional. if nil, select all title posts.
-    GetPosts(page, size int, boardId *int, keyword *string)         (posts []models.Post, count int)
-
-    // Select enabled posts with pagination and optional condition
-    // page, size: must contained. parameters for pagination.
-    // boardId: optional. if nil, select from all boards.
-    // keyword: optional. if nil, select all title posts.
-    GetEnabledPosts(page, size int, boardId *int, keyword *string)  (posts []models.Post, count int)
-
     // Select posts with pagination, order and optional condition
     // enabled: if true, returns posts which status is true.
     // page, size: must contained. parameters for pagination.
     // boardId: optional. if nil, select from all boards.
     // keyword: optional. if nil, select all title posts.
     // orderBy: order.
-    GetPostsOrderBy(
+    GetPosts(
         enabled bool,
         selected *bool,
         page, size int,
@@ -49,6 +58,9 @@ type PostRepository interface {
         keyword *string,
         orderBy ... string,
     )                               (posts []models.Post, count int)
+
+    // posts 테이블의 모든 게시글 정보를 불러온다.
+    GetAllPosts()                   (posts []models.PostE)
 
     // 홈페이지의 메인 화면에 썸네일을 출력 할 게시물들을 재설정한다.
     ResetSelectedPost(ids *[]int)   (err error)
@@ -69,15 +81,37 @@ func NewPostRepositoryImpl(db *gorm.DB) PostRepository {
     return &PostRepositoryImpl{ db: db }
 }
 
-func (r *PostRepositoryImpl) GetPost(postId int) (post *models.Post, err error) {
+func (r *PostRepositoryImpl) GetPost(status *bool, postId int) (post *models.Post, err error) {
     post = &models.Post{}
-    err = r.db.Where(&models.Post{PostID:postId}).First(post).Error
+    query := r.db.Model(&models.Post{})
+    if status != nil {
+        query = query.Where("status = ?", *status)
+    }
+    err = query.First(post).Error
     return
 }
 
-func (r *PostRepositoryImpl) GetEnabledPost(postId int) (post *models.Post, err error) {
-    post = &models.Post{}
-    err = r.db.Where(&models.Post{PostID:postId, Status:true}).First(post).Error
+func (r *PostRepositoryImpl) GetPrevPostInfo(
+    status *bool,
+    postId int,
+) (prevPost *models.PostE, err error) {
+    query := r.db.Model(&models.Post{}).Select("post_id, title")
+    if status != nil {
+        query = query.Where("status = ?", *status)
+    }
+    err = query.Where("post_id < ?", postId).Order("post_id desc").First(prevPost).Error
+    return
+}
+
+func (r *PostRepositoryImpl) GetNextPostInfo(
+    status *bool,
+    postId int,
+) (nextPost *models.PostE, err error) {
+    query := r.db.Model(&models.Post{}).Select("post_id, title")
+    if status != nil {
+        query = query.Where("status = ?", *status)
+    }
+    err = query.Where("post_id > ?", postId).Order("post_id asc").First(nextPost).Error
     return
 }
 
@@ -96,40 +130,6 @@ func (r *PostRepositoryImpl) DeletePost(postId int) (err error) {
 }
 
 func (r *PostRepositoryImpl) GetPosts(
-    page, size int, 
-    boardId *int, 
-    keyword *string,
-) (posts []models.Post, count int) {
-    query := r.db.Model(&models.Post{}).Omit("Content")
-    if boardId != nil {
-        query = query.Where("board_id = ?", boardId)
-    }
-    if keyword != nil {
-        query = query.Where("title like ?", "%"+*keyword+"%")
-    }
-    r.db.Table("(?) as a", query).Select("count(*)").Find(&count)
-    query.Order("post_id desc").Limit(size).Offset((page-1)*size).Find(&posts)
-    return
-}
-
-func (r *PostRepositoryImpl) GetEnabledPosts(
-    page, size int, 
-    boardId *int, 
-    keyword *string,
-) (posts []models.Post, count int) {
-    query := r.db.Model(&models.Post{}).Omit("Content").Where("status = ?", true)
-    if boardId != nil {
-        query = query.Where("board_id = ?", boardId)
-    }
-    if keyword != nil {
-        query = query.Where("title like ?", "%"+*keyword+"%")
-    }
-    r.db.Table("(?) as a", query).Select("count(*)").Find(&count)
-    query.Order("post_id desc").Limit(size).Offset((page-1)*size).Find(&posts)
-    return
-}
-
-func (r *PostRepositoryImpl) GetPostsOrderBy(
     enabled bool,
     selected *bool,
     page, size int,
@@ -155,6 +155,11 @@ func (r *PostRepositoryImpl) GetPostsOrderBy(
         query = query.Order(order)
     }
     query.Limit(size).Offset((page-1)*size).Find(&posts)
+    return
+}
+
+func (r *PostRepositoryImpl) GetAllPosts() (posts []models.PostE){
+    r.db.Model(&models.Post{}).Find(&posts)
     return
 }
 
