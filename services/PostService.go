@@ -140,10 +140,8 @@ func (r *PostServiceImpl) UpdatePost(post *models.Post) (result *models.PostVali
     return
 }
 
-func (r *PostServiceImpl) DeletePost(postId int) (err error) {
-    post, err := r.postRepo.GetPost(postId)
-    if err != nil { return }
-    node, err := html.Parse(strings.NewReader(post.Content))
+func (r *PostServiceImpl) deleteImage(htmlStr string) (err error) {
+    node, err := html.Parse(strings.NewReader(htmlStr))
     if err != nil { return }
 
     doc := goquery.NewDocumentFromNode(node)
@@ -167,9 +165,23 @@ func (r *PostServiceImpl) DeletePost(postId int) (err error) {
             log.Println("이미지가 삭제되었습니다: "+filename)
         }
     })
+    return nil
+}
+
+func (r *PostServiceImpl) DeletePost(postId int) (err error) {
+    post, err := r.postRepo.GetPost(postId)
+    if err != nil { return }
+
+    err = r.deleteImage(post.Content)
+    if err != nil { return }
+
+    err = r.deleteImage(post.Thumbnail)
+    if err != nil { return }
 
     return r.postRepo.DeletePost(postId)
 }
+
+
 
 func (r *PostServiceImpl) GetPost(enabled bool, postId int) (post *models.Post, err error) {
     if enabled {
