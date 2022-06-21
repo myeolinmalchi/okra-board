@@ -87,7 +87,7 @@ func (r *PostRepositoryImpl) GetPost(status *bool, postId int) (post *models.Pos
     if status != nil {
         query = query.Where("status = ?", *status)
     }
-    err = query.First(post).Error
+    err = query.Where("post_id = ?", postId).First(post).Error
     return
 }
 
@@ -95,7 +95,8 @@ func (r *PostRepositoryImpl) GetPrevPostInfo(
     status *bool,
     postId int,
 ) (prevPost *models.PostE, err error) {
-    query := r.db.Model(&models.Post{}).Select("post_id, title")
+    prevPost = &models.PostE{}
+    query := r.db.Model(&models.Post{})    
     if status != nil {
         query = query.Where("status = ?", *status)
     }
@@ -107,6 +108,7 @@ func (r *PostRepositoryImpl) GetNextPostInfo(
     status *bool,
     postId int,
 ) (nextPost *models.PostE, err error) {
+    nextPost = &models.PostE{}
     query := r.db.Model(&models.Post{}).Select("post_id, title")
     if status != nil {
         query = query.Where("status = ?", *status)

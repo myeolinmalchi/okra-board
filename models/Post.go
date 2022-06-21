@@ -13,8 +13,8 @@ type Post struct {
     Selected    bool        `json:"selected"`
     Views       int         `json:"views"`
 
-    Prev        PostE       `json:"prev,omitempty" gorm:"-"`
-    Next        PostE       `json:"next,omitempty" gorm:"-"`
+    Prev        *PostE      `json:"prev,omitempty" gorm:"-"`
+    Next        *PostE      `json:"next,omitempty" gorm:"-"`
 }
 
 type PostE struct {

@@ -206,12 +206,12 @@ func (r *PostServiceImpl) GetPost(status *bool, postId int) (post *models.Post, 
     post, err = r.postRepo.GetPost(status, postId)
     if err != nil { return }
 
-    if prevPost, err := r.postRepo.GetPrevPostInfo(status, postId); err != nil {
-        post.Prev = *prevPost
+    if prevPost, err := r.postRepo.GetPrevPostInfo(status, postId); err == nil {
+        post.Prev = prevPost
     }
 
-    if nextPost, err := r.postRepo.GetNextPostInfo(status, postId); err != nil {
-        post.Next = *nextPost
+    if nextPost, err := r.postRepo.GetNextPostInfo(status, postId); err == nil {
+        post.Next = nextPost
     }
 
     return
