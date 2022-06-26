@@ -69,6 +69,16 @@ func LoadConfig() (*Config, error){
     return config, err
 }
 
+func LoadConfigTest() (*Config, error){
+    file, err := os.Open("../config.json")
+    defer file.Close()
+    config := &Config{}
+    jsonParser := json.NewDecoder(file)
+    jsonParser.Decode(config)
+    return config, err
+}
+
+
 func InitDBConnection(conf *Config) (*gorm.DB, error){
     dsn := conf.DB.ToString()
     db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{

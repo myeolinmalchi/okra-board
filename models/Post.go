@@ -13,14 +13,23 @@ type Post struct {
     Selected    bool        `json:"selected"`
     Views       int         `json:"views"`
 
+    Tags        []PostTag   `json:"tags,omitempty" gorm:"foreignKey:PostID"`
+
     Prev        *PostE      `json:"prev,omitempty" gorm:"-"`
     Next        *PostE      `json:"next,omitempty" gorm:"-"`
+}
+
+type PostTag struct {
+    TagID       int         `json:"tagId,omitempty" gorm:"primaryKey;<-:false"`
+    Name        string      `json:"name"`
+    PostID      int         `json:"postId"`
 }
 
 type PostE struct {
     PostID      string      `json:"postId"`
     Title       string      `json:"title"`
 }
+
 
 // Response Only
 type PostValidationResult struct {

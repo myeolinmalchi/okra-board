@@ -11,10 +11,13 @@ import (
 )
 
 func TestAuthCRUD(t *testing.T){ 
-    conf, err := config.LoadConfig()
+    conf, err := config.LoadConfigTest()
     if err != nil { assert.Error(t, err) }
     db, err := config.InitDBConnection(conf)
     if err != nil { assert.Error(t, err) }
+
+    sqlDB, err := db.DB()
+    defer sqlDB.Close()
 
     r := repositories.NewAuthRepositoryImpl(db)
     auths := make([]models.AdminAuth, 5)
@@ -22,7 +25,7 @@ func TestAuthCRUD(t *testing.T){
         index := strconv.Itoa(i+1)
         auths[i] = models.AdminAuth {
             UUID: "uuid" + index,
-            AdminID: "admin",
+            AdminID: "okraseoul",
             AccessToken: "access token " + index,
             RefreshToken: "refresh token " + index,
         }

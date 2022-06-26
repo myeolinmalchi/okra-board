@@ -46,7 +46,7 @@ type PostRepository interface {
 
     // Select posts with pagination, order and optional condition
     // enabled: if true, returns posts which status is true.
-    // page, size: must contained. parameters for pagination.
+    // page, size: must be contained. parameters for pagination.
     // boardId: optional. if nil, select from all boards.
     // keyword: optional. if nil, select all title posts.
     // orderBy: order.
@@ -55,7 +55,8 @@ type PostRepository interface {
         selected *bool,
         page, size int,
         boardId *int,
-        keyword *string,
+        titleKeyword *string,
+        tagKeyword *string,
         orderBy ... string,
     )                               (posts []models.Post, count int)
 
@@ -83,7 +84,9 @@ func NewPostRepositoryImpl(db *gorm.DB) PostRepository {
 
 func (r *PostRepositoryImpl) GetPost(status *bool, postId int) (post *models.Post, err error) {
     post = &models.Post{}
-    query := r.db.Model(&models.Post{})
+    query := r.db.Model(&models.Post{}).Preload("Tags", func(db *gorm.DB) *gorm.DB {
+        return db.Order("post_tags.name ASC")
+    })
     if status != nil {
         query = query.Where("status = ?", *status)
     }
@@ -124,7 +127,20 @@ func (r *PostRepositoryImpl) InsertPost(post *models.Post) (postId int, err erro
 }
 
 func (r *PostRepositoryImpl) UpdatePost(post *models.Post) (err error) {
-    return r.db.UpdateColumns(post).Error
+    return r.db.Transaction(func(tx *gorm.DB) error {
+        if err := r.db.Delete(&models.PostTag{}, "post_id = ?", post.PostID).Error; err != nil {
+            return err
+        }
+        if len(post.Tags) > 0  {
+            if err := r.db.Create(post.Tags).Error; err != nil {
+                return err
+            }
+        }
+        if err := r.db.UpdateColumns(post).Error; err != nil {
+            return err
+        }
+        return nil
+    })
 }
 
 func (r *PostRepositoryImpl) DeletePost(postId int) (err error) {
@@ -136,10 +152,13 @@ func (r *PostRepositoryImpl) GetPosts(
     selected *bool,
     page, size int,
     boardId *int,
-    keyword *string,
+    titleKeyword *string,
+    tagKeyword *string,
     orderBy ... string,
 ) (posts[]models.Post, count int) {
-    query := r.db.Model(&models.Post{}).Omit("Content")
+    query := r.db.Model(&models.Post{}).Preload("Tags", func(db *gorm.DB) *gorm.DB {
+        return db.Order("post_tags.name ASC")
+    }).Omit("Content")
     if enabled { 
         query = query.Where("status = ?", true) 
     }
@@ -149,8 +168,13 @@ func (r *PostRepositoryImpl) GetPosts(
     if boardId != nil { 
         query = query.Where("board_id = ?", boardId) 
     }
-    if keyword != nil { 
-        query = query.Where("title like ?", "%"+*keyword+"%") 
+    if titleKeyword != nil { 
+        query = query.Where("title like ?", "%"+*titleKeyword+"%") 
+    }
+    if tagKeyword != nil {
+        query = query.Joins("INNER JOIN post_tags on post_tags.post_id = posts.post_id").
+            Group("posts.post_id").
+            Where("post_tags.name like ?", "%"+*tagKeyword+"%")
     }
     r.db.Table("(?) as a", query).Select("count(*)").Find(&count)
     for _, order := range orderBy {

@@ -36,6 +36,7 @@ func (p *PostControllerImpl) GetPosts(enabled bool) gin.HandlerFunc {
             selected *bool
             boardId *int
             keyword *string
+            tag *string
         )
         size, err = strconv.Atoi(c.DefaultQuery("size", "15"))
         if err != nil { c.JSON(400, err.Error()); return }
@@ -62,7 +63,13 @@ func (p *PostControllerImpl) GetPosts(enabled bool) gin.HandlerFunc {
             keyword = nil
         }
 
-        posts, count := p.postService.GetPosts(enabled, selected, page, size, boardId, keyword)
+        if tagStr, tagExists := c.GetQuery("tag"); tagExists {
+            tag = &tagStr
+        } else {
+            tag = nil
+        }
+
+        posts, count := p.postService.GetPosts(enabled, selected, page, size, boardId, keyword, tag)
         c.IndentedJSON(200, gin.H {
             "nowPage": page,
             "pageCount": math.Ceil(float64(count) / float64(size)),

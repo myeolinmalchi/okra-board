@@ -11,7 +11,10 @@ import (
 )
 
 func TestAdminService(t *testing.T) {
-    db, err := config.InitDBConnection()
+    conf, err := config.LoadConfigTest()
+    if err != nil { assert.Error(t, err) }
+
+    db, err := config.InitDBConnection(conf)
     if err != nil { assert.Error(t, err) }
     adminRepo := repositories.NewAdminRepositoryImpl(db)
     s := services.NewAdminServiceImpl(adminRepo)

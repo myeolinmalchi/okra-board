@@ -47,7 +47,8 @@ type PostService interface {
         selected *bool,
         page, size int,
         boardId *int,
-        keyword *string,
+        titleKeyword *string,
+        tagKeyword *string,
     )                               (posts []models.Post, count int)
 
     // selected colunm이 true인 게시글들의 썸네일 및 제목 정보를 불러온다.
@@ -127,9 +128,25 @@ func (r *PostServiceImpl) postValidation(post *models.Post) *models.PostValidati
     return result.GetOrNil()
 }
 
+// 태그 중복 제거
+func (r *PostServiceImpl) distinctTags(t []models.PostTag) []models.PostTag {
+    keys := make(map[string]struct{}) 
+    res := make([]models.PostTag, 0) 
+    for _, val := range t { 
+        if _, ok := keys[val.Name]; ok { 
+            continue 
+        } else { 
+            keys[val.Name] = struct{}{} 
+            res = append(res, val) 
+        } 
+    }
+    return res 
+}
+
 func (r *PostServiceImpl) WritePost(post *models.Post) (postId int, result *models.PostValidationResult,  err error) {
     result = r.postValidation(post)
     if result == nil {
+        post.Tags = r.distinctTags(post.Tags)
         postId, err = r.postRepo.InsertPost(post)
     }
     return
@@ -222,14 +239,16 @@ func (r *PostServiceImpl) GetPosts(
     selected *bool,
     page, size int,
     boardId *int,
-    keyword *string,
+    titleKeyword *string,
+    tagKeyword *string,
 ) (posts []models.Post, count int) {
     posts, count = r.postRepo.GetPosts(
         enabled,
         selected,
         page, size,
         boardId, 
-        keyword, 
+        titleKeyword, 
+        tagKeyword,
         "post_id desc",
     )
     return

@@ -12,7 +12,11 @@ import (
 )
 
 func TestAuthService(t *testing.T) {
-    db, err := config.InitDBConnection()
+
+    conf, err := config.LoadConfigTest()
+    if err != nil { assert.Error(t, err) }
+
+    db, err := config.InitDBConnection(conf)
     if err != nil { assert.Error(t, err) }
     authRepo := repositories.NewAuthRepositoryImpl(db)
     adminRepo := repositories.NewAdminRepositoryImpl(db)

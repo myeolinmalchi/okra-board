@@ -10,11 +10,14 @@ import (
 )
 
 func TestAdminCRUD(t *testing.T) {
-    conf, err := config.LoadConfig()
+    conf, err := config.LoadConfigTest()
     if err != nil { assert.Error(t, err) }
 
     db, err := config.InitDBConnection(conf)
     if err != nil { assert.Error(t, err) }
+
+    sqlDB, err := db.DB()
+    defer sqlDB.Close()
 
     r := repositories.NewAdminRepositoryImpl(db)
 
